@@ -1,0 +1,526 @@
+package qa.steps.Ecommerce;
+
+import java.time.Instant;
+import java.util.List;
+
+import org.junit.Assert;
+
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import qa.helper.BaseTest;
+import qa.page.CheckoutEcommerceOverviewPage;
+import qa.page.CheckoutEcommercePage;
+import qa.page.EcommerceListPage;
+import qa.page.LoginPage;
+
+public class EcommerceSteps extends BaseTest{
+	
+	LoginPage loginPage = new LoginPage();
+	EcommerceListPage ecommerceList = new EcommerceListPage();
+	CheckoutEcommercePage checkouEcommerce = new CheckoutEcommercePage();
+	CheckoutEcommerceOverviewPage checkoutOverview = new CheckoutEcommerceOverviewPage();
+	private static String firstName;
+	private static String lastName;
+	private static String postalCode;
+
+	//Scenario01
+	@Given("I log in to the website")
+	public void i_log_in_to_the_website(DataTable dataTable) throws Throwable{
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	
+	@When("I add the products to the cart")
+	public void i_add_the_products_to_the_cart(DataTable dataTable) throws Throwable{
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+		Assert.assertEquals(productsList.get(1).get(1), ecommerceList.validarPrecoProdutos().get(1));
+		Assert.assertEquals(productsList.get(2).get(1), ecommerceList.validarPrecoProdutos().get(2));
+		gerarScreenshot(3);
+		ecommerceList.clicarCheckout();
+	}
+	
+	@When("fill in the address correctly")
+	public void fill_in_the_address_correctly(DataTable dataTable) throws Throwable{
+		List<List<String>> getcheckout = dataTable.asLists(String.class);
+		String primeiroNome = getcheckout.get(1).get(0);
+		String ultimoNome = getcheckout.get(1).get(1);
+		String codPostal = getcheckout.get(1).get(2);
+		checkouEcommerce.inserirPrimeiroNome(primeiroNome);
+		checkouEcommerce.inserirUltimoNome(ultimoNome);
+		checkouEcommerce.inserirCodigoPostal(codPostal);
+		gerarScreenshot(4);
+		checkouEcommerce.clicarContinue();
+	}
+	
+	@Then("my purchases should be made")
+	public void my_purchases_should_be_made() throws Throwable{
+		double valorSomado = checkoutOverview.resultadoSomaTotal();
+		double valorPagina = checkoutOverview.validarValorTotalPagina();
+		if(valorSomado == valorPagina) {
+			Assert.assertTrue("Valor somado: "+ valorSomado + " Valor pagina: " +valorPagina, true);
+		}else {
+			Assert.assertTrue("Valor somado: "+ valorSomado + " Valor pagina: " +valorPagina, false);
+		}
+		
+		gerarScreenshot(5);
+		checkoutOverview.clicarFinish();
+		Assert.assertEquals("Thank you for your order!", checkoutOverview.validarMsgFinishPurchase());
+		gerarScreenshot(6);
+	}
+	
+	//Scenario02
+	@Given("I enter the incorrect user")
+	public void i_enter_the_incorrect_user(DataTable dataTable)throws Throwable {
+		List<List<String>> getLoginList = dataTable.asLists(String.class);
+		String userLogin = getLoginList.get(1).get(0);
+		String passwordLogin = getLoginList.get(1).get(1);
+		loginPage.loginMarketplace(userLogin, passwordLogin);
+
+	}
+	@Then("the system should show me a alert message")
+	public void the_system_should_show_me_a_alert_message(DataTable dataTable) {
+		List<List<String>> getErrorMsg = dataTable.asLists(String.class);
+		String errorMsgLogin = getErrorMsg.get(0).get(0);
+		String obterMsgError = loginPage.validarLockedOutUser();
+		Assert.assertEquals(errorMsgLogin, obterMsgError);
+		gerarScreenshot(1);
+	}
+
+	//Scenario03
+	@Given("I enter the problem user")
+	public void i_enter_the_problem_user(DataTable dataTable)throws Throwable {
+		List<List<String>> getLoginList = dataTable.asLists(String.class);
+		String userLogin = getLoginList.get(1).get(0);
+		String passwordLogin = getLoginList.get(1).get(1);
+		loginPage.loginMarketplace(userLogin, passwordLogin);
+		gerarScreenshot(1);
+	}
+
+	@Then("I validate the problema on the list")
+	public void i_validate_the_problema_on_the_list()throws Throwable {
+	    List<String> listaImgSrc = ecommerceList.validarImagensDosProdutos();
+	    for(int i = 0; i < listaImgSrc.size(); i++) {
+	    	if(listaImgSrc.get(i).equalsIgnoreCase("/static/media/sl-404.168b1cce.jpg")) {
+	    		Assert.assertFalse("A imagem é inválida. ", false);
+	    		System.out.println(listaImgSrc.get(i));
+	    	}else {
+	    		Assert.assertFalse("A imagem não é inválida, verificar. ", true);
+	    	}
+	    }
+	}
+	
+	
+	//Scenario03_1
+	@Given("I enter using a problem user")
+	public void i_enter_using_a_problem_user(DataTable dataTable)throws Throwable {
+		List<List<String>> getLoginList = dataTable.asLists(String.class);
+		String userLogin = getLoginList.get(1).get(0);
+		String passwordLogin = getLoginList.get(1).get(1);
+		loginPage.loginMarketplace(userLogin, passwordLogin);
+		gerarScreenshot(1);
+	}
+	@Then("I must validate which button Add to cart is working")
+	public void i_must_validate_which_button_Add_to_cart_is_working(DataTable dataTable)throws Throwable {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		List<String> validarAtributo = ecommerceList.validarBotaoAddToCart(productsList);
+		
+	    for(int i = 0; i < validarAtributo.size(); i++) {
+	    	if(validarAtributo.get(i).contains("remove")) {
+	    		Assert.assertTrue("Produto adicionado ao carrinho ", true);
+	    	}else {
+	    		Assert.assertFalse("Botão Add to Cart não está funcionando. ", false);
+	    		//O sysout é apenas pra evidenciar quais botões Add to cart não estão funcionando.
+	    		System.out.println("O botão Add to card não está funcionando para a opção: "+ validarAtributo.get(i));
+	    	}
+	    }
+	    gerarScreenshot(2);
+	}
+	
+	
+	//Scenario03_2
+	@Given("I do login using a problem user")
+	public void i_do_login_using_a_problem_user(DataTable dataTable)throws Throwable {
+		List<List<String>> getLoginList = dataTable.asLists(String.class);
+		String userLogin = getLoginList.get(1).get(0);
+		String passwordLogin = getLoginList.get(1).get(1);
+		loginPage.loginMarketplace(userLogin, passwordLogin);
+		gerarScreenshot(1);
+	}
+	@When("I add some products to the cart")
+	public void i_add_some_products_to_the_cart(DataTable dataTable)throws Throwable {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+		Assert.assertEquals(productsList.get(1).get(1), ecommerceList.validarPrecoProdutos().get(1));
+	}
+	@Then("in my list of products click on my purchase and validate my purchase wheter its correct or not")
+	public void in_my_list_of_products_click_on_my_purchase_validate_my_purchase_its_correct_or_not() {
+		List<String> nomeCompras = ecommerceList.obterNomeProdutosListaCart();
+		String primeiraCompra = nomeCompras.get(0);
+		String segundaCompra = nomeCompras.get(1);
+		ecommerceList.clicarCompraListaCart(primeiraCompra);
+		String validarCompra = ecommerceList.validarCompraCorreta();
+		if(primeiraCompra.equals(validarCompra)) {
+			Assert.assertTrue("A compra está correta. ", true);
+		}else {
+			Assert.assertFalse("" +primeiraCompra+" <> "+ validarCompra + "", false);
+			System.out.println("A compra realizada está diferente em outra página do carrinho." + primeiraCompra + " <> " + validarCompra);
+		}
+		gerarScreenshot(3);
+		
+		ecommerceList.voltarParaProdutos();
+		ecommerceList.clicarCarrinhoCompras();
+		ecommerceList.clicarCompraListaCart(segundaCompra);
+		
+		if(segundaCompra.equals(validarCompra)) {
+			Assert.assertTrue("A compra está correta. ", true);
+		}else {
+			Assert.assertFalse("" +segundaCompra+" <> "+ validarCompra + "", false);
+			System.out.println("A compra realizada está diferente em outra página do carrinho." + segundaCompra + " <> " + validarCompra);
+		}
+		gerarScreenshot(4);
+	}
+	
+
+	//Scenario03_3
+	@Given("I work using a problem user")
+	public void i_work_using_a_problem_user(DataTable dataTable)throws Throwable {
+		List<List<String>> getLoginList = dataTable.asLists(String.class);
+		String userLogin = getLoginList.get(1).get(0);
+		String passwordLogin = getLoginList.get(1).get(1);
+		loginPage.loginMarketplace(userLogin, passwordLogin);
+		gerarScreenshot(1);
+	}
+	@When("I add a product to the cart")
+	public void i_add_a_product_to_the_cart(io.cucumber.datatable.DataTable dataTable)throws Throwable {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+	}
+	@Then("at the checkout the system doesnt allow I fill my infos")
+	public void at_the_checkout_the_system_doesnt_allow_i_fill_my_infos(DataTable dataTable)throws Throwable {
+		gerarScreenshot(3);
+		ecommerceList.clicarCheckout();
+		List<List<String>> getcheckout = dataTable.asLists(String.class);
+		String primeiroNome = getcheckout.get(1).get(0);
+		String ultimoNome = getcheckout.get(1).get(1);
+		String codPostal = getcheckout.get(1).get(2);
+		checkouEcommerce.inserirPrimeiroNome(primeiroNome);
+		checkouEcommerce.inserirUltimoNome(ultimoNome);
+		checkouEcommerce.inserirCodigoPostal(codPostal);
+		gerarScreenshot(4);
+		checkouEcommerce.clicarContinue();
+		checkouEcommerce.validarMsgErroCheckout();
+		Assert.assertEquals("Error: Last Name is required", checkouEcommerce.validarMsgErroCheckout());
+	}
+
+	@Given("I enter using performance_glitch_user")
+	public void i_enter_using_performance_glitch_user(DataTable dataTable)throws Throwable {
+		List<List<String>> getLoginList = dataTable.asLists(String.class);
+		String userLogin = getLoginList.get(1).get(0);
+		String passwordLogin = getLoginList.get(1).get(1);
+		loginPage.loginMarketplace(userLogin, passwordLogin);
+		gerarScreenshot(1);
+	}
+	@Then("I have to validate how long it took to login")
+	public void i_have_to_validate_how_long_it_took_to_login()throws Throwable {
+		Assert.assertTrue("Tempo de login: " + loginPage.testeTempoLogin(), true);
+		System.out.println("Tempo de login: " + loginPage.testeTempoLogin());
+	}
+
+
+	//Scenario04_1
+	@Given("I make a purchase using performance_glitch_user")
+	public void i_make_a_purchase_using_performance_glitch_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@When("I choose some products to the cart")
+	public void i_choose_some_products_to_the_cart(DataTable dataTable) {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+		Assert.assertEquals(productsList.get(1).get(1), ecommerceList.validarPrecoProdutos().get(1));
+		Assert.assertEquals(productsList.get(2).get(1), ecommerceList.validarPrecoProdutos().get(2));
+		gerarScreenshot(3);
+		ecommerceList.clicarCheckout();
+	}
+	@When("fill my infos correctly")
+	public void fill_my_infos_correctly(DataTable dataTable) {
+		List<List<String>> getcheckout = dataTable.asLists(String.class);
+		String primeiroNome = getcheckout.get(1).get(0);
+		String ultimoNome = getcheckout.get(1).get(1);
+		String codPostal = getcheckout.get(1).get(2);
+		checkouEcommerce.inserirPrimeiroNome(primeiroNome);
+		checkouEcommerce.inserirUltimoNome(ultimoNome);
+		checkouEcommerce.inserirCodigoPostal(codPostal);
+		gerarScreenshot(4);
+		checkouEcommerce.clicarContinue();
+	}
+	@Then("I click on button Cancel and validate how long time it took")
+	public void i_click_on_button_cancel_and_validate_how_long_time_it_took() {
+		long tempo = checkoutOverview.clicarCancelarValidarTempo();
+		Assert.assertTrue("Tempo de retorno: " + tempo, true);
+		System.out.println("Tempo de retorno: " + tempo);
+	}
+	
+	
+	//Scenario04_02
+	@Given("I going to use performance_glitch_user")
+	public void i_going_to_use_performance_glitch_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@When("I add my wish products to the cart")
+	public void i_add_my_wish_products_to_the_cart(io.cucumber.datatable.DataTable dataTable) {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+	}
+	@Then("I click on button Continue to Shopping and validate how long time it took")
+	public void i_click_on_button_continue_to_shopping_and_validate_how_long_time_it_took() {
+	    long tempo = ecommerceList.validarTempoBtnContinueToShopping();
+	    Assert.assertTrue("Tempo de retorno: " + tempo, true);
+	    System.out.println("Tempo de retorno: " + tempo);
+	}
+
+	
+	//Scenario04_3
+	@Given("I want to make a purchase using performance_glitch_user")
+	public void i_want_to_make_a_purchase_using_performance_glitch_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@When("I add products to the cart")
+	public void i_add_products_to_the_cart(io.cucumber.datatable.DataTable dataTable) {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+		Assert.assertEquals(productsList.get(1).get(1), ecommerceList.validarPrecoProdutos().get(1));
+		Assert.assertEquals(productsList.get(2).get(1), ecommerceList.validarPrecoProdutos().get(2));
+		gerarScreenshot(3);
+		ecommerceList.clicarCheckout();
+	}
+	@When("fill my the infos correctly")
+	public void fill_my_the_infos_correctly(io.cucumber.datatable.DataTable dataTable) {
+		List<List<String>> getcheckout = dataTable.asLists(String.class);
+		String primeiroNome = getcheckout.get(1).get(0);
+		String ultimoNome = getcheckout.get(1).get(1);
+		String codPostal = getcheckout.get(1).get(2);
+		checkouEcommerce.inserirPrimeiroNome(primeiroNome);
+		checkouEcommerce.inserirUltimoNome(ultimoNome);
+		checkouEcommerce.inserirCodigoPostal(codPostal);
+		gerarScreenshot(4);
+		checkouEcommerce.clicarContinue();
+	}
+	@Then("I click on button Back Home and validate how long time it took")
+	public void i_click_on_button_back_home_and_validate_how_long_time_it_took() {
+		gerarScreenshot(5);
+		checkoutOverview.clicarFinish();
+		Assert.assertEquals("Thank you for your order!", checkoutOverview.validarMsgFinishPurchase());
+		gerarScreenshot(6);
+		long tempo = checkoutOverview.clicarBackHomeValidarTempo();
+	    Assert.assertTrue("Tempo de retorno: " + tempo, true);
+	    System.out.println("Tempo de retorno: " + tempo);
+	}
+	
+
+	//Scenario05
+	@Given("I want to make a purchase using error_user")
+	public void i_want_to_make_a_purchase_using_error_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@When("I put my products to the cart")
+	public void i_put_my_products_to_the_cart(DataTable dataTable) {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+		Assert.assertEquals(productsList.get(1).get(1), ecommerceList.validarPrecoProdutos().get(1));
+		gerarScreenshot(3);
+		ecommerceList.clicarCheckout();
+	}
+	@When("fill in the address")
+	public void fill_in_the_address(io.cucumber.datatable.DataTable dataTable) {
+		List<List<String>> getcheckout = dataTable.asLists(String.class);
+		String primeiroNome = getcheckout.get(1).get(0);
+		String ultimoNome = getcheckout.get(1).get(1);
+		String codPostal = getcheckout.get(1).get(2);
+		checkouEcommerce.inserirPrimeiroNome(primeiroNome);
+		checkouEcommerce.inserirUltimoNome(ultimoNome);
+		checkouEcommerce.inserirCodigoPostal(codPostal);
+		gerarScreenshot(4);
+		checkouEcommerce.clicarContinue();
+	}
+	@Then("my I should validate the button Finish")
+	public void my_i_should_validate_the_button_finish() {
+		gerarScreenshot(5);
+		checkoutOverview.clicarFinish();
+		Assert.assertEquals("Thank you for your order!", checkoutOverview.validarMsgFinishPurchase());
+	}
+
+
+	//Scenario05_1
+	@Given("I make a purchase using error_user")
+	public void i_make_a_purchase_using_error_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@When("I choose products to the cart")
+	public void i_choose_products_to_the_cart(DataTable dataTable) {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+		Assert.assertEquals(productsList.get(0).get(1), ecommerceList.validarPrecoProdutos().get(0));
+		Assert.assertEquals(productsList.get(1).get(1), ecommerceList.validarPrecoProdutos().get(1));
+		gerarScreenshot(3);
+		ecommerceList.clicarCheckout();
+	}
+	@When("try to fill in the address")
+	public void try_to_fill_in_the_address(io.cucumber.datatable.DataTable dataTable) {
+		List<List<String>> getcheckout = dataTable.asLists(String.class);
+		firstName = getcheckout.get(1).get(0);
+		lastName = getcheckout.get(1).get(1);
+		postalCode = getcheckout.get(1).get(2);
+		checkouEcommerce.inserirPrimeiroNome(firstName);
+		checkouEcommerce.inserirUltimoNome(lastName);
+		checkouEcommerce.inserirCodigoPostal(postalCode);
+		gerarScreenshot(4);
+	}
+	@Then("the system should allow me fill all inputs")
+	public void the_system_should_allow_me_fill_all_inputs() {
+		String nome =	checkouEcommerce.validarNomeInputCheckout();
+		String codPostal =	checkouEcommerce.validarCodPostalInputCheckout();
+		String sobrenome =	checkouEcommerce.validarSobrenomeInputCheckout();
+		Assert.assertEquals(firstName, nome);
+		Assert.assertEquals(postalCode, codPostal);
+		Assert.assertEquals(lastName, sobrenome);
+	}
+	
+	
+	//Scenario06
+	@Given("I make a log in using visual_user")
+	public void i_make_a_log_in_using_visual_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@Then("I should validate that the images are correct")
+	public void i_should_validate_that_the_images_are_correct(DataTable dataTable) {
+		List<List<String>> purchaseListBdd = dataTable.asLists(String.class);
+		List<String> getSrcImg = ecommerceList.validarImagensLista(purchaseListBdd);
+		int count = 1;
+		
+		for(int i = 0; i < purchaseListBdd.size(); i++) {
+			if(getSrcImg.get(i).equalsIgnoreCase(purchaseListBdd.get(i).get(count))) {
+				System.out.println("As imagens estão corretas: " +getSrcImg.get(i)+" <> " + purchaseListBdd.get(i).get(count));
+				Assert.assertTrue("As imagens estão corretas: " +getSrcImg.get(i)+" <> " + purchaseListBdd.get(i).get(count), true);
+			}else {
+				System.out.println("As imagens estão incorretas: " +getSrcImg.get(i)+" <> " + purchaseListBdd.get(i).get(count));
+				Assert.assertFalse("As imagens estão incorretas: " +getSrcImg.get(i)+" <> " + purchaseListBdd.get(i).get(count), false);
+			}
+		}
+	}
+
+	
+	//Scenario06_1
+	@Given("I log in using visual_user")
+	public void i_log_in_using_visual_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@Then("I should validate that the cart are correct position")
+	public void i_should_validate_that_the_cart_are_correct_position() {
+		boolean posicaoElemento = ecommerceList.validarPosicaoBotao();
+		if(posicaoElemento == true) {
+			Assert.assertTrue("O elemento está na posicao correta", posicaoElemento);
+		}else {
+			Assert.assertTrue("O elemento NÃO está na posicao correta", posicaoElemento);
+		}
+	}
+	
+
+	//Scenario06_2
+	@Given("I login using visual_user")
+	public void i_login_using_visual_user(DataTable dataTable) {
+	    List<List<String>> getLoginList = dataTable.asLists(String.class);
+	    String userLogin = getLoginList.get(1).get(0);
+	    String passwordLogin = getLoginList.get(1).get(1);
+	    loginPage.loginMarketplace(userLogin, passwordLogin);
+	    gerarScreenshot(1);
+	}
+	@When("I put a product to the cart")
+	public void i_put_a_product_to_the_cart(DataTable dataTable) {
+		List<List<String>> productsList = dataTable.asLists(String.class);
+		ecommerceList.selecionarProdutosLista(productsList);
+		int qtdProdutoCarrinho = ecommerceList.obterQtdProdutosAddCarrinho();
+		Assert.assertEquals(productsList.size(), qtdProdutoCarrinho);
+		gerarScreenshot(2);
+		ecommerceList.clicarCarrinhoCompras();
+	}
+	@Then("I should validate that the checkout button are in correct position")
+	public void i_should_validate_that_the_checkout_button_are_in_correct_position() {
+		ecommerceList.validarPosicaoBotao()
+	}
+
+
+
+
+}

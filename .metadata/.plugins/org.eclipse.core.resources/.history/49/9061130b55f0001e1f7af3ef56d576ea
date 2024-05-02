@@ -1,0 +1,12 @@
+package qa.page;
+
+import org.openqa.selenium.By;
+
+import qa.helper.BasePage;
+
+public class CheckoutEcommercePage extends BasePage{
+
+	By firstName = By.id("first-name");
+	By lastName = By.id("last-name");
+	By postalCode = By.id("postal-code");
+}

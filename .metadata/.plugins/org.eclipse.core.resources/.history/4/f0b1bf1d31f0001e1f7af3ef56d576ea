@@ -1,0 +1,11 @@
+package utils;
+
+public class Utils {
+	
+	  public static String formataData(Date data) {
+	    SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+		String dataFormatada = formato.format(data);
+		return dataFormatada;
+	  }
+
+}

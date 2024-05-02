@@ -1,0 +1,219 @@
+package qa.helper;
+
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import static qa.helper.DriverFactory.getDriver;
+
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
+
+public class BasePage {
+
+	public void escrever(By by, String texto) {
+		getDriver().findElement(by).clear();
+		getDriver().findElement(by).sendKeys(texto);
+	}
+	
+	public void limparAtributoValue(By by) {
+		while(!getDriver().findElement(by).getAttribute("value").equals("")) {
+			getDriver().findElement(by).sendKeys(Keys.BACK_SPACE);
+		}
+	}
+	
+	public void moverMouse(By by) {
+		Actions acao = new Actions(getDriver());
+		acao.contextClick().build().perform();
+	}
+	
+	public void clicar(By by) {
+		esperarInteratividade(by);
+		getDriver().findElement(by).click();
+	}
+	
+	public void clicarViaTexto(String texto) {
+		clicar(By.xpath("//*[contains(text(), '"+ texto +"')]"));
+	}
+	
+	public void selecionarCombo(By byCombo, String valor) {
+		esperarInteratividade(byCombo);
+		Select select = new Select(getDriver().findElement(byCombo));
+		select.selectByVisibleText(valor);
+	}
+	
+	public boolean isCheckSwitchMarcado(By by) {
+		return getDriver().findElement(by).getAttribute("checked").equals("true");
+	}
+	
+	public String obterTexto(By by) {
+		return getDriver().findElement(by).getText();
+	}
+	
+	public String obterAtributo(By by) {
+		return getDriver().findElement(by).getAttribute("value");
+	}
+	
+	public void limparTexto(By by) {
+		getDriver().findElement(by).clear();
+	}
+	
+	public List<WebElement> obterElementos(By by) {
+		return getDriver().findElements(by);
+	}
+	
+	public void esperar(By by, Duration segundos) {
+		WebDriverWait wait = new WebDriverWait(DriverFactory.getDriver(), segundos);
+		wait.until(ExpectedConditions.presenceOfElementLocated(by));
+	}
+	
+	public void esperarElementoClicavel(By by, Duration segundos) {
+		WebDriverWait wait = new WebDriverWait(DriverFactory.getDriver(), segundos);
+		wait.until(ExpectedConditions.elementToBeClickable(by));
+	}
+	
+	public void esperarInteratividade(By by) {
+		WebDriverWait wait = new WebDriverWait(DriverFactory.getDriver(), Duration.ofSeconds(20));
+		wait.until(ExpectedConditions.elementToBeClickable(by));
+	}
+	
+	public void esperarElementoDesaparecer(By by, Duration segundos) {
+		WebDriverWait wait = new WebDriverWait(DriverFactory.getDriver(), segundos);
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(by));
+	}
+	
+	public void aguardarThreadSleep(long tempoMiliSegundos) {
+		try {
+			Thread.sleep(tempoMiliSegundos);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	//JAVASCRIPT
+	public Object executarJavaScript(String script, Object... param) {
+		JavascriptExecutor js = (JavascriptExecutor) getDriver();
+		return js.executeScript(script, param);
+	}
+	
+	public void scrollVertical(By by) {
+		executarJavaScript("window.scrollBy(0, arguments[0])", getDriver().findElement(by).getLocation().y);
+	}
+	
+	public void fecharAlert() {
+		Alert alert = DriverFactory.getDriver().switchTo().alert();
+		alert.accept();
+	}
+	
+	public void acessarFrame(String frame) {
+		DriverFactory.getDriver().switchTo().frame(frame);
+	}
+	
+	public void sairFrame() {
+		DriverFactory.getDriver().switchTo().defaultContent();
+	}
+	
+	public static String extrairNumeros(String mensagem) {
+		StringBuilder numeros = new StringBuilder();
+		
+		for(int i = 0; i < mensagem.length(); i++) {
+			char caractere = mensagem.charAt(i);
+			if(Character.isDigit(caractere)) {
+				numeros.append(caractere);
+			}
+		}
+		return numeros.toString();
+	}
+	
+	public void marcarCheckbox(By by) {
+		esperarInteratividade(by);
+		if(!DriverFactory.getDriver().findElement(by).isSelected()) {
+			getDriver().findElement(by).click();
+		}
+	}
+	
+	public String gerarValor() {
+		Random random = new Random();
+		
+		int randomInt = random.nextInt(99) + 1; //Gera numeros inteiros entre 1 e 99
+		double randomValue = randomInt / 100.0; //Converte para o formato decimal(0.01 ate 0.99)
+		return String.format("%.2f", randomValue);
+	}
+	
+	public static boolean isElementPresent(By by) {
+		try {
+			DriverFactory.getDriver().findElement(by);
+			return true; // Elemento encontrado
+		} catch (NoSuchElementException e) {
+			return false; // Elemento nao encontrado
+		}
+	}
+	
+	public static boolean isElementDisplayBlock(String by) {
+		WebElement element = DriverFactory.getDriver().findElement(By.cssSelector(by));
+        String valorDisplay = element.getCssValue("display");		
+		if (!valorDisplay.equals("block")) {
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	//Executar funcao para limpar cache
+	public static void limparCache() {
+		JavascriptExecutor jsExecutor = (JavascriptExecutor) getDriver();
+		jsExecutor.executeScript("window.localStorage.clear();");
+		jsExecutor.executeScript("window.sessionStorage.clear();");
+		jsExecutor.executeScript("document.cookie= '';");
+		jsExecutor.executeScript("window.location.reload(true);");
+	}
+	
+	public static String obterDataFormatada() {
+		LocalDate dataAtual = LocalDate.now();
+		DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		String dataFormatada = dataAtual.format(formato);
+		return dataFormatada;
+	}
+	
+	public static String addDiasData(int addDias) {
+		LocalDate dataAtual = LocalDate.now();
+		DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		String dataFormatada = dataAtual.plusDays(addDias).format(formato);
+		return dataFormatada;
+	}
+	
+	public static void copiarTexto(String texto) {
+		StringSelection strSelection = new StringSelection(texto);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(strSelection, null);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}

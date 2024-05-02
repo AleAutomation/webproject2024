@@ -1,0 +1,49 @@
+package qa.page;
+
+import java.time.Duration;
+import java.time.Instant;
+
+import org.openqa.selenium.By;
+
+import qa.helper.BasePage;
+
+public class LoginPage extends BasePage{
+	
+	By userName = By.id("user-name");
+	By userPassword = By.id("password");
+	By btnLogin = By.id("login-button");
+	By lockedOutUser = By.xpath("//h3[@data-test='error']");
+	
+	 Instant inicioTempo;
+	 Instant FinalTempo;
+	
+	public void loginMarketplace(String userName, String userPassword) {
+		limparCache();
+		inserirUsuario(userName);
+		inserirSenha(userPassword);
+		inicioTempo = Instant.now();
+		clicarLogin();
+	}
+	
+	public void inserirUsuario(String userLogin) {
+		escrever(userName, userLogin);
+	}
+	
+	public void inserirSenha(String passwordLogin) {
+		escrever(userPassword, passwordLogin);
+	}
+	
+	public void clicarLogin() {
+		clicar(btnLogin);
+	}
+	
+	public String validarLockedOutUser(){
+		return obterTexto(lockedOutUser);
+	}
+	
+	public long testeTempoLogin() {
+		FinalTempo = Instant.now();
+		Duration loginDuration = Duration.between(inicioTempo, FinalTempo);
+		return loginDuration.getSeconds();
+	}
+}

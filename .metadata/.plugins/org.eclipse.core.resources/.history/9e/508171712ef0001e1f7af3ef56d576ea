@@ -1,0 +1,5 @@
+package qa.helper;
+
+public class BaseTest {
+
+}

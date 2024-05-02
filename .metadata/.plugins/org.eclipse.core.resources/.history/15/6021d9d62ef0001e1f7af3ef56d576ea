@@ -1,0 +1,8 @@
+package qa.helper;
+
+public class BaseTest {
+	
+	protected static String cenario = "";
+	protected static String feature = "";
+
+}

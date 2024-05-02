@@ -1,0 +1,99 @@
+package qa.page;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+import qa.helper.BasePage;
+
+public class EcommerceListPage extends BasePage{
+	
+	By qtdCarrinho = By.xpath("//span[@data-test='shopping-cart-badge']");
+	By btnShopCart = By.id("shopping_cart_container");
+	By btnCheckout = By.id("checkout");
+	By imgDog = By.xpath("//img[@src='/static/media/sl-404.168b1cce.jpg']");
+	By btnAddToCart = By.xpath("//div[@data-test='inventory-item-name']/..//..//..//div[@class='pricebar']//button");
+	By listCart = By.xpath("//div[@data-test='inventory-item-name']");
+	By backProducts = By.id("back-to-products");
+	
+	
+	List<String> pegarPreco = new ArrayList<String>();
+	List<String> pegarElemento = new ArrayList<String>();
+	List<String> pegarAtributo = new ArrayList<String>();
+	List<String> pegarNomeCompra = new ArrayList<String>();
+	
+	public void selecionarProdutosLista(List<List<String>> productsList) {
+		
+		for(int i = 0; i < productsList.size(); i++) {
+			clicar(By.xpath("//div[@data-test='inventory-item-name' and contains(., '"+productsList.get(i).get(0)+"')]/..//..//..//div[@class='pricebar']//button"));
+			String obterString = obterTexto(By.xpath("//div[@data-test='inventory-item-name' and contains(., '"+productsList.get(i).get(0)+"')]/..//..//..//div[@class='pricebar']//div[@data-test='inventory-item-price']")).replace("$", "");
+			pegarPreco.add(obterString);
+		}
+	}
+	
+	public List<String> validarBotaoAddToCart(List<List<String>> productsList) {
+		
+		for(int i = 0; i < productsList.size(); i++) {
+			String productName = productsList.get(i).get(0);
+			By elementoDinamico = By.xpath("//div[@data-test='inventory-item-name' and contains(., '"+productName+"')]/..//..//..//div[@class='pricebar']//button");
+			clicar(elementoDinamico);
+			WebElement receberElemento = obterElementos(btnAddToCart).get(i);
+			String obterString = receberElemento.getAttribute("data-test");
+			pegarAtributo.add(obterString);
+		}
+		return pegarAtributo;
+	}	
+	
+	public List<String> validarPrecoProdutos() {
+		return pegarPreco;	
+	}
+	
+	public int obterQtdProdutosAddCarrinho() {
+		String obterValor = obterTexto(qtdCarrinho);
+		int converterValor = Integer.parseInt(obterValor);
+		return converterValor;
+	}
+	
+	public void clicarCarrinhoCompras() {
+		clicar(btnShopCart);
+	}
+	
+	public void clicarCheckout() {
+		clicar(btnCheckout);
+	}
+	
+
+	public List<String> validarImagensDosProdutos() {
+		for(int i = 0; i < obterElementos(imgDog).size(); i++) {
+			WebElement obterValor = obterElementos(imgDog).get(i);
+			String receberElemento = obterValor.getAttribute("src");
+			pegarElemento.add(receberElemento.replace("https://www.saucedemo.com", ""));
+		}
+		return pegarElemento;
+	}
+	
+	public List<String> obterNomeProdutosListaCart() {
+		for(int i = 0; i < obterElementos(listCart).size(); i++) {
+			WebElement pegarElemento = obterElementos(listCart).get(i);
+			String obterDados = pegarElemento.getText();
+			pegarNomeCompra.add(obterDados);
+			System.out.println(pegarNomeCompra);
+			}
+		
+			return pegarNomeCompra;
+	}
+	
+	public void clicarCompraListaCart(String nomeProduto) {
+		clicar(By.xpath("//div[@class='cart_item_label']//div[text()='"+nomeProduto+"']"));
+	}
+
+	public String validarCompraCorreta() {
+		return obterTexto(listCart);
+	}
+	
+	public void voltarParaProdutos() {
+		clicar(backProducts);
+	}
+}

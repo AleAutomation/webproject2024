@@ -1,0 +1,9 @@
+#language: en
+
+	Feature: Log in to Swag Labs and run all the test scenarios
+		
+		Scenario: Logging in to the Marketplace and completing some purchases
+			Given I log in to the website
+			When I add the products to the cart
+			And fill in the address correctly
+			Then my purchases should be made.

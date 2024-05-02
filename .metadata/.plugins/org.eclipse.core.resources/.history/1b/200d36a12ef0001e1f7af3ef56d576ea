@@ -1,0 +1,5 @@
+package qa.hooks;
+
+public class BaseHooks {
+
+}

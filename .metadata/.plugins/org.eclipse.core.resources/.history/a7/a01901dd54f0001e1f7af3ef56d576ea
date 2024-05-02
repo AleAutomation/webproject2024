@@ -1,0 +1,8 @@
+package qa.page;
+
+import qa.helper.BasePage;
+
+public class CheckoutEcommercePage extends BasePage{
+
+	
+}

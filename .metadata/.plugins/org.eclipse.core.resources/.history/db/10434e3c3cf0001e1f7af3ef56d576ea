@@ -1,0 +1,23 @@
+package qa.page;
+
+import org.openqa.selenium.By;
+
+import qa.helper.BasePage;
+
+public class LoginPage extends BasePage{
+	
+	By userName = By.id("user-name");
+	By userPassword = By.id("password");
+	
+	public void loginMarketplace() {
+		
+	}
+	
+	public void inserirUsuario(String userLogin) {
+		escrever(userName, userLogin);
+	}
+	
+	public void inserirSenha(String passwordLogin) {
+		escrever(userPassword, passwordLogin);
+	}
+}
